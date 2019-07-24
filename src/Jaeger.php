@@ -80,22 +80,18 @@ class Jaeger
         $this->rootSpan = $rootSpan;
     }
 
-    public function getInitialisationSpan(): Span
+    public function getFrameworkRunningSpan(): Span
     {
-        if ($this->initialisationSpan) {
-            return $this->initialisationSpan;
+        if ($this->frameworkRunningSpan) {
+            return $this->frameworkRunningSpan;
         }
 
-        $initialisationSpan = $this->client->startSpan('Application initialisation.', ['child_of' => $this->getRootSpan()]);
+        $frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
 
-        if (defined('LARAVEL_START')) {
-            $initialisationSpan->startTime = (int)(LARAVEL_START * 1000000);
-        }
-
-        return $this->initialisationSpan = $initialisationSpan;
+        return $this->frameworkRunningSpan = $frameworkRunningSpan;
     }
 
-    public function getFrameworkBootingSpan(): Span
+    protected function getFrameworkBootingSpan(): Span
     {
         if ($this->frameworkBootingSpan) {
             return $this->frameworkBootingSpan;
@@ -110,15 +106,19 @@ class Jaeger
         return $this->frameworkBootingSpan = $frameworkBootingSpan;
     }
 
-    public function getFrameworkRunningSpan(): Span
+    protected function getInitialisationSpan(): Span
     {
-        if ($this->frameworkRunningSpan) {
-            return $this->frameworkRunningSpan;
+        if ($this->initialisationSpan) {
+            return $this->initialisationSpan;
         }
 
-        $frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
+        $initialisationSpan = $this->client->startSpan('Application initialisation.', ['child_of' => $this->getRootSpan()]);
 
-        return $this->frameworkRunningSpan = $frameworkRunningSpan;
+        if (defined('LARAVEL_START')) {
+            $initialisationSpan->startTime = (int)(LARAVEL_START * 1000000);
+        }
+
+        return $this->initialisationSpan = $initialisationSpan;
     }
 
     protected function shouldTrace(): bool
