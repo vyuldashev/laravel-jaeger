@@ -31,7 +31,6 @@ class CommandWatcher
             $rootSpan->setTag('console.exit_code', (string)$event->exitCode);
 
             $this->jaeger->setRootSpan($rootSpan);
-
         });
     }
 }
