@@ -3,8 +3,10 @@
 namespace Vyuldashev\LaravelJaeger;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Jaeger\Jaeger as Client;
 use Jaeger\Span;
+use const OpenTracing\Formats\TEXT_MAP;
 
 class Jaeger
 {
@@ -63,7 +65,15 @@ class Jaeger
             return $this->rootSpan;
         }
 
-        $rootSpan = $this->client->startSpan('root');
+        $headers = [];
+
+        foreach (request()->headers->all() as $key => $value) {
+            $headers[$key] = Arr::first($value);
+        }
+
+        $spanContext = $this->client->extract(TEXT_MAP, $headers);
+
+        $rootSpan = $this->client->startSpan('root', ['child_of' => $spanContext]);
 
         if (defined('LARAVEL_START')) {
             $rootSpan->startTime = (int)(LARAVEL_START * 1000000);
