@@ -101,6 +101,11 @@ class Jaeger
         return $this->frameworkRunningSpan = $frameworkRunningSpan;
     }
 
+    public function inject(array $injectTarget): void
+    {
+        $this->client->inject($this->getRootSpan()->getContext(), TEXT_MAP, $injectTarget);
+    }
+
     protected function getFrameworkBootingSpan(): Span
     {
         if ($this->frameworkBootingSpan) {
