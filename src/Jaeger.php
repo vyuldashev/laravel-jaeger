@@ -28,6 +28,11 @@ class Jaeger
         $this->app = $application;
         $this->client = $client;
 
+        if (!$this->shouldTrace()) {
+            return;
+        }
+
+
         $this->app->booting(function () {
             $this->getInitialisationSpan()->finish();
 
@@ -114,5 +119,29 @@ class Jaeger
         $frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
 
         return $this->frameworkRunningSpan = $frameworkRunningSpan;
+    }
+
+    protected function shouldTrace(): bool
+    {
+        if (!$this->app->runningInConsole()) {
+            return true;
+        }
+
+        $traceableCommands = [
+            // 'migrate',
+            'migrate:rollback',
+            'migrate:fresh',
+            // 'migrate:refresh',
+            'migrate:reset',
+            'migrate:install',
+            'package:discover',
+            'queue:listen',
+            'queue:work',
+            'horizon',
+            'horizon:work',
+            'horizon:supervisor',
+        ];
+
+        return !in_array($_SERVER['argv'][1] ?? null, $traceableCommands, true);
     }
 }

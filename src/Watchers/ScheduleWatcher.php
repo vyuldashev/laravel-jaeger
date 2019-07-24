@@ -20,7 +20,7 @@ class ScheduleWatcher
     public function register(): void
     {
         Event::listen(CommandStarting::class, function (CommandStarting $event) {
-            if ($event->command !== 'schedule:run') {
+            if ($event->command !== 'schedule:run' && $event->command !== 'schedule:finish') {
                 return;
             }
 
