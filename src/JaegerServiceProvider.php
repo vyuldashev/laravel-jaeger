@@ -28,7 +28,6 @@ class JaegerServiceProvider extends ServiceProvider
 
             $config->gen128bit();
             $config::$propagator = PROPAGATOR_JAEGER;
-            $config->setDisabled(!config('jaeger.enabled'));
 
             $client = $config->initTracer(
                 config('jaeger.service_name'),

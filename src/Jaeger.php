@@ -49,7 +49,9 @@ class Jaeger
             $this->getFrameworkRunningSpan()->finish();
             $this->getRootSpan()->finish();
 
-            $this->tracer->flush();
+            if (config('jaeger.enabled')) {
+                $this->tracer->flush();
+            }
         });
     }
 
