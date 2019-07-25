@@ -4,7 +4,6 @@ namespace Vyuldashev\LaravelJaeger;
 
 use Illuminate\Support\ServiceProvider;
 use Jaeger\Config;
-use Ramsey\Uuid\Uuid;
 use Vyuldashev\LaravelJaeger\Watchers\CommandWatcher;
 use Vyuldashev\LaravelJaeger\Watchers\QueryWatcher;
 use Vyuldashev\LaravelJaeger\Watchers\RequestWatcher;
@@ -13,16 +12,28 @@ use const Jaeger\Constants\PROPAGATOR_JAEGER;
 
 class JaegerServiceProvider extends ServiceProvider
 {
+    public function boot(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../config/jaeger.php' => config_path('jaeger.php'),
+        ], 'config');
+    }
+
     public function register(): void
     {
-        $this->app->instance('jaeger.uuid', (string)Uuid::uuid4());
+        $this->mergeConfigFrom(__DIR__ . '/../config/jaeger.php', 'jaeger');
 
-        $this->app->singleton(Jaeger::class, function ($app) {
+        $this->app->singleton(Jaeger::class, static function ($app) {
             $config = Config::getInstance();
+
             $config->gen128bit();
             $config::$propagator = PROPAGATOR_JAEGER;
+            $config->setDisabled(!config('jaeger.enabled'));
 
-            $client = $config->initTracer(config('app.name'), 'jaeger:6831');
+            $client = $config->initTracer(
+                config('jaeger.service_name'),
+                config('jaeger.agent.host') . ':' . config('jaeger.agent.port')
+            );
 
             return new Jaeger($app, $client);
         });
@@ -30,11 +41,5 @@ class JaegerServiceProvider extends ServiceProvider
         foreach ([CommandWatcher::class, RequestWatcher::class, QueryWatcher::class, ScheduleWatcher::class] as $watcher) {
             resolve($watcher)->register();
         }
-//
-//        Event::listen('*', function ($event) {
-//            $data = getmypid() . ' | ' . $event . PHP_EOL;
-//
-//            file_put_contents(base_path('events.json'), $data, FILE_APPEND);
-//        });
     }
 }
