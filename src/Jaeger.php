@@ -4,31 +4,31 @@ namespace Vyuldashev\LaravelJaeger;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
-use Jaeger\Jaeger as Client;
 use Jaeger\Span;
+use OpenTracing\Tracer;
 use const OpenTracing\Formats\TEXT_MAP;
 
 class Jaeger
 {
     protected $app;
-    protected $client;
+    protected $tracer;
 
-    /** @var Span */
+    /** @var Span|\OpenTracing\Span */
     protected $rootSpan;
 
-    /** @var Span */
+    /** @var Span|\OpenTracing\Span */
     protected $initialisationSpan;
 
-    /** @var Span */
+    /** @var Span|\OpenTracing\Span */
     protected $frameworkBootingSpan;
 
-    /** @var Span */
+    /** @var Span|\OpenTracing\Span */
     protected $frameworkRunningSpan;
 
-    public function __construct(Application $application, Client $client)
+    public function __construct(Application $application, Tracer $tracer)
     {
         $this->app = $application;
-        $this->client = $client;
+        $this->tracer = $tracer;
 
         if (!$this->shouldTrace()) {
             return;
@@ -49,16 +49,16 @@ class Jaeger
             $this->getFrameworkRunningSpan()->finish();
             $this->getRootSpan()->finish();
 
-            $this->client->flush();
+            $this->tracer->flush();
         });
     }
 
-    public function client(): Client
+    public function client(): Tracer
     {
-        return $this->client;
+        return $this->tracer;
     }
 
-    public function getRootSpan(): Span
+    public function getRootSpan()
     {
         if ($this->rootSpan) {
             return $this->rootSpan;
@@ -70,9 +70,9 @@ class Jaeger
             $headers[$key] = Arr::first($value);
         }
 
-        $spanContext = $this->client->extract(TEXT_MAP, $headers);
+        $spanContext = $this->tracer->extract(TEXT_MAP, $headers);
 
-        $rootSpan = $this->client->startSpan('root', ['child_of' => $spanContext]);
+        $rootSpan = $this->tracer->startSpan('root', ['child_of' => $spanContext]);
 
         if (defined('LARAVEL_START')) {
             $rootSpan->startTime = (int)(LARAVEL_START * 1000000);
@@ -89,36 +89,36 @@ class Jaeger
         $this->rootSpan = $rootSpan;
     }
 
-    public function getFrameworkRunningSpan(): Span
+    public function getFrameworkRunningSpan()
     {
         if ($this->frameworkRunningSpan) {
             return $this->frameworkRunningSpan;
         }
 
-        return $this->frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
+        return $this->frameworkRunningSpan = $this->tracer->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
     }
 
     public function inject(array $target): void
     {
-        $this->client->inject($this->getRootSpan()->getContext(), TEXT_MAP, $target);
+        $this->tracer->inject($this->getRootSpan()->getContext(), TEXT_MAP, $target);
     }
 
-    protected function getFrameworkBootingSpan(): Span
+    protected function getFrameworkBootingSpan()
     {
         if ($this->frameworkBootingSpan) {
             return $this->frameworkBootingSpan;
         }
 
-        return $this->frameworkBootingSpan = $this->client->startSpan('Framework booting.', ['child_of' => $this->getRootSpan()]);
+        return $this->frameworkBootingSpan = $this->tracer->startSpan('Framework booting.', ['child_of' => $this->getRootSpan()]);
     }
 
-    protected function getInitialisationSpan(): Span
+    protected function getInitialisationSpan()
     {
         if ($this->initialisationSpan) {
             return $this->initialisationSpan;
         }
 
-        $initialisationSpan = $this->client->startSpan('Application initialisation.', ['child_of' => $this->getRootSpan()]);
+        $initialisationSpan = $this->tracer->startSpan('Application initialisation.', ['child_of' => $this->getRootSpan()]);
 
         if (defined('LARAVEL_START')) {
             $initialisationSpan->startTime = (int)(LARAVEL_START * 1000000);
