@@ -4,7 +4,7 @@ return [
 
     'enabled' => env('JAEGER_ENABLED', false),
 
-    'service_name' => env('JAEGER_SERVICE_NAME', env('APP_NAME')),
+    'service_name' => env('JAEGER_SERVICE_NAME', env('APP_NAME', 'Laravel')),
 
     'agent' => [
         'host' => env('JAEGER_AGENT_HOST', 'jaeger'),
