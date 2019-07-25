@@ -2,7 +2,7 @@
 
 return [
 
-    'enabled' => env('JAEGER_ENABLED', true),
+    'enabled' => env('JAEGER_ENABLED', false),
 
     'service_name' => env('JAEGER_SERVICE_NAME', env('APP_NAME')),
 
