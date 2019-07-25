@@ -34,7 +34,6 @@ class Jaeger
             return;
         }
 
-
         $this->app->booting(function () {
             $this->getInitialisationSpan()->finish();
 
@@ -96,9 +95,7 @@ class Jaeger
             return $this->frameworkRunningSpan;
         }
 
-        $frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
-
-        return $this->frameworkRunningSpan = $frameworkRunningSpan;
+        return $this->frameworkRunningSpan = $this->client->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
     }
 
     public function inject(array $target): void
@@ -112,13 +109,7 @@ class Jaeger
             return $this->frameworkBootingSpan;
         }
 
-        $frameworkBootingSpan = $this->client->startSpan('Framework booting.', ['child_of' => $this->getRootSpan()]);
-
-        if (defined('LARAVEL_START')) {
-            $frameworkBootingSpan->startTime = (int)(LARAVEL_START * 1000000);
-        }
-
-        return $this->frameworkBootingSpan = $frameworkBootingSpan;
+        return $this->frameworkBootingSpan = $this->client->startSpan('Framework booting.', ['child_of' => $this->getRootSpan()]);
     }
 
     protected function getInitialisationSpan(): Span
