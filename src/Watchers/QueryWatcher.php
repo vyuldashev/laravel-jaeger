@@ -3,7 +3,6 @@
 namespace Vyuldashev\LaravelJaeger\Watchers;
 
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Support\Facades\DB;
 use Vyuldashev\LaravelJaeger\Jaeger;
 
 class QueryWatcher
@@ -17,15 +16,15 @@ class QueryWatcher
 
     public function register(): void
     {
-        DB::listen(function (QueryExecuted $query) {
+        app('events')->listen(QueryExecuted::class, function (QueryExecuted $event) {
             $querySpan = $this->jaeger->client()->startSpan(
                 'DB Query',
                 ['child_of' => $this->jaeger->getFrameworkRunningSpan()]
             );
-            $querySpan->setTag('query.sql', $query->sql);
-            $querySpan->setTag('query.bindings', json_encode($query->bindings, JSON_UNESCAPED_UNICODE));
-            $querySpan->setTag('query.connection_name', $query->connectionName);
-            $querySpan->duration = $query->time * 1000;
+            $querySpan->setTag('query.sql', $event->sql);
+            $querySpan->setTag('query.bindings', json_encode($event->bindings, JSON_UNESCAPED_UNICODE));
+            $querySpan->setTag('query.connection_name', $event->connectionName);
+            $querySpan->duration = $event->time * 1000;
         });
     }
 }

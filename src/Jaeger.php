@@ -135,7 +135,7 @@ class Jaeger
             return true;
         }
 
-        $traceableCommands = [
+        $ignoredArtisanCommand = [
             // 'migrate',
             'migrate:rollback',
             'migrate:fresh',
@@ -150,6 +150,10 @@ class Jaeger
             'horizon:supervisor',
         ];
 
-        return !in_array($_SERVER['argv'][1] ?? null, $traceableCommands, true);
+        if (in_array($_SERVER['argv'][1] ?? null, $ignoredArtisanCommand, true)) {
+            return false;
+        }
+
+        return true;
     }
 }
