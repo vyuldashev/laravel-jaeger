@@ -100,7 +100,7 @@ class Jaeger
         return $this->frameworkRunningSpan = $this->tracer->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
     }
 
-    public function inject(array $target): void
+    public function inject(array &$target): void
     {
         $this->tracer->inject($this->getRootSpan()->getContext(), TEXT_MAP, $target);
     }
