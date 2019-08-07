@@ -4,10 +4,6 @@ namespace Vyuldashev\LaravelJaeger;
 
 use Illuminate\Support\ServiceProvider;
 use Jaeger\Config;
-use Vyuldashev\LaravelJaeger\Watchers\CommandWatcher;
-use Vyuldashev\LaravelJaeger\Watchers\QueryWatcher;
-use Vyuldashev\LaravelJaeger\Watchers\RequestWatcher;
-use Vyuldashev\LaravelJaeger\Watchers\ScheduleWatcher;
 use const Jaeger\Constants\PROPAGATOR_JAEGER;
 
 class JaegerServiceProvider extends ServiceProvider
@@ -37,7 +33,7 @@ class JaegerServiceProvider extends ServiceProvider
             return new Jaeger($app, $client);
         });
 
-        foreach ([CommandWatcher::class, RequestWatcher::class, QueryWatcher::class, ScheduleWatcher::class] as $watcher) {
+        foreach (config('jaeger.watchers', []) as $watcher) {
             resolve($watcher)->register();
         }
     }
