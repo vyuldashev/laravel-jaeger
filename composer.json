@@ -27,7 +27,10 @@
     "laravel": {
       "providers": [
         "Vyuldashev\\LaravelJaeger\\JaegerServiceProvider"
-      ]
+      ],
+      "aliases": {
+        "Jaeger": "Vyuldashev\\LaravelJaeger\\Facade"
+      }
     }
   },
   "minimum-stability": "dev",
