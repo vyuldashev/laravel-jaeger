@@ -33,8 +33,10 @@ class JaegerServiceProvider extends ServiceProvider
             return new Jaeger($app, $client);
         });
 
-        foreach (config('jaeger.watchers', []) as $watcher) {
-            resolve($watcher)->register();
+        if (config('jaeger.enabled')) {
+            foreach (config('jaeger.watchers', []) as $watcher) {
+                resolve($watcher)->register();
+            }
         }
     }
 }

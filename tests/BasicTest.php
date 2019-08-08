@@ -17,12 +17,12 @@ class BasicTest extends TestCase
         });
     }
 
-    public function test()
+    public function test(): void
     {
         $this->getJson('/users')->dump();
     }
 
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [JaegerServiceProvider::class];
     }

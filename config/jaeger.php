@@ -13,6 +13,7 @@ return [
 
     'watchers' => [
         Vyuldashev\LaravelJaeger\Watchers\CommandWatcher::class,
+        Vyuldashev\LaravelJaeger\Watchers\FrameworkWatcher::class,
         Vyuldashev\LaravelJaeger\Watchers\QueryWatcher::class,
         Vyuldashev\LaravelJaeger\Watchers\RequestWatcher::class,
         Vyuldashev\LaravelJaeger\Watchers\ScheduleWatcher::class,

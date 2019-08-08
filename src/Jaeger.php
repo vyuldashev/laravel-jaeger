@@ -16,15 +16,6 @@ class Jaeger
     /** @var Span|\OpenTracing\Span */
     protected $rootSpan;
 
-    /** @var Span|\OpenTracing\Span */
-    protected $initialisationSpan;
-
-    /** @var Span|\OpenTracing\Span */
-    protected $frameworkBootingSpan;
-
-    /** @var Span|\OpenTracing\Span */
-    protected $frameworkRunningSpan;
-
     public function __construct(Application $application, Tracer $tracer)
     {
         $this->app = $application;
@@ -33,26 +24,6 @@ class Jaeger
         if (!$this->shouldTrace()) {
             return;
         }
-
-        $this->app->booting(function () {
-            $this->getInitialisationSpan()->finish();
-
-            $this->getFrameworkBootingSpan();
-            $this->getFrameworkRunningSpan();
-        });
-
-        $this->app->booted(function () {
-            $this->getFrameworkBootingSpan()->finish();
-        });
-
-        $this->app->terminating(function () {
-            $this->getFrameworkRunningSpan()->finish();
-            $this->getRootSpan()->finish();
-
-            if (config('jaeger.enabled')) {
-                $this->tracer->flush();
-            }
-        });
     }
 
     public function client(): Tracer
@@ -91,42 +62,9 @@ class Jaeger
         $this->rootSpan = $rootSpan;
     }
 
-    public function getFrameworkRunningSpan()
-    {
-        if ($this->frameworkRunningSpan) {
-            return $this->frameworkRunningSpan;
-        }
-
-        return $this->frameworkRunningSpan = $this->tracer->startSpan('Framework running.', ['child_of' => $this->getRootSpan()]);
-    }
-
     public function inject(array &$target): void
     {
         $this->tracer->inject($this->getRootSpan()->getContext(), TEXT_MAP, $target);
-    }
-
-    protected function getFrameworkBootingSpan()
-    {
-        if ($this->frameworkBootingSpan) {
-            return $this->frameworkBootingSpan;
-        }
-
-        return $this->frameworkBootingSpan = $this->tracer->startSpan('Framework booting.', ['child_of' => $this->getRootSpan()]);
-    }
-
-    protected function getInitialisationSpan()
-    {
-        if ($this->initialisationSpan) {
-            return $this->initialisationSpan;
-        }
-
-        $initialisationSpan = $this->tracer->startSpan('Application initialisation.', ['child_of' => $this->getRootSpan()]);
-
-        if (defined('LARAVEL_START')) {
-            $initialisationSpan->startTime = (int)(LARAVEL_START * 1000000);
-        }
-
-        return $this->initialisationSpan = $initialisationSpan;
     }
 
     protected function shouldTrace(): bool
